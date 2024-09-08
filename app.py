@@ -1,4 +1,3 @@
-import os
 from copy import copy
 import sv_ttk
 import pandas as pd
