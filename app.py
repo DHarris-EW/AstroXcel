@@ -97,8 +97,9 @@ class App(tk.Tk):
 
                 for col in ws.columns:
                     max_length = max(len(str(cell.value)) for cell in col)
+                    if col[0].value == "Count_ID":
+                        ws.column_dimensions[get_column_letter(col[0].column)].hidden= True
                     ws.column_dimensions[get_column_letter(col[0].column)].width = max_length
-                print(file_name)
                 wb.save(file_name)
         else:
             messagebox.showerror("Missing Output file", "No Output file selected.")
