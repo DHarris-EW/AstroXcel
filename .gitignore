@@ -2,3 +2,4 @@ build
 dist
 test.spec
 frames.py
+DS_Store

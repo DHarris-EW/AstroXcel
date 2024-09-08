@@ -184,6 +184,6 @@ class MergeFiles(tk.Frame):
 
 app = App()
 sv_ttk.set_theme("dark")
-app.title("XCelAstro")
+app.title("AstroXCel")
 app.resizable(False, False)
 app.mainloop()
