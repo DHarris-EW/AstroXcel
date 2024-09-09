@@ -16,34 +16,41 @@ class App(tk.Tk):
         container = tk.Frame(self)
         container.grid(padx=20, pady=5)
 
-        self.merge_file_names = tk.StringVar()
-        self.output_folder_name = tk.StringVar()
-        self.countIDFileName = tk.StringVar()
-        self.originalFileName = tk.StringVar()
+        # Variables for merging
+        self.mergeFileNames = tk.StringVar()
+        self.columnName = tk.StringVar()
+        self.mergeFilesPath = []
+        self.merge_ws = []
+        
+        # Variables for output directory
+        self.outputDirName = tk.StringVar()
+        self.outPutDirPath = ""
 
+        # Variables for the original
+        self.originalFileName = tk.StringVar()
         self.originalWS = {}
         self.originalWB = {}
+
+        # Variables for orignial file when column <Count_ID> is added
+        self.countIDFileName = tk.StringVar()
         self.countIDWS = {}
         self.countIDWB = {}
-        self.df = ""
 
-        self.files_to_merge = ""
-        self.outPutDirPath = ""
-        self.merge_files_path = []
-        self.merge_ws = []
-        self.column_name = tk.StringVar()
-
+        # Different frames
         CreateFiles(container, self).grid(row=1, column=0, pady=5, padx=5, sticky="nesw")
         MergeFiles(container, self).grid(row=0, column=1, rowspan=2, pady=5, padx=5, sticky="nesw")
         Options(container, self).grid(row=0, column=0, pady=5, padx=5, sticky="nesw")
 
     def SelectDirectory(self, event=None):
+        # Selecting the output directory
         self.outPutDirPath = str(filedialog.askdirectory())
-        self.output_folder_name.set(self.outPutDirPath)
+        self.outputDirName.set(self.outPutDirPath)
 
     def UploadAction(self, event=None, countIDFile=False):
+        # upladoing the orignial Excel file or orinigal file with <Count_ID> column
         file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
 
+        # Loading the workbook and setting the variable according the Excel file uploaded
         if not countIDFile:
             self.originalFileName.set(file_path.split("/")[-1])
             self.originalWB = load_workbook(file_path, data_only=True)
@@ -55,19 +62,18 @@ class App(tk.Tk):
         
 
     def UploadActionMultiple(self, event=None):
+        # Upload multiple files that are selecting when mergine
         files = filedialog.askopenfilenames(filetypes=[("Excel files", "*.xlsx")])
-        df_files = []
-        file_paths = ""
 
+        # Adds all the file paths to a variable
         for path in files:
             file_paths += path.split("/")[-1] + "\n"
-            df_files.append(pd.read_excel(path, header=0))
-            self.merge_files_path.append(path)
+            self.mergeFilesPath.append(path)
 
-        self.merge_file_names.set(file_paths)
-        self.files_to_merge = df_files
+        self.mergeFileNames.set(file_paths)
 
     def CreateDataFrame(self, type):
+        # Creates a dataframe so data can be grouped and column names can be read quickly
         if type=="countID":
             data = self.countIDWS.values
             columns = next(data)
@@ -81,20 +87,24 @@ class App(tk.Tk):
     def CreateWorkBooks(self):
         df = self.CreateDataFrame(type="original")
         if self.outPutDirPath:
+            # Create a 'copy' of the original file with the column 'Count_ID'
+            # Count_ID used to keep track of row loction when splitting and merging
             if "Count_ID" not in df.columns:
                 df.insert(0, "Count_ID", range(1, len(df) + 1))
                 df.to_excel(self.outPutDirPath + "/" + "CountID_" + self.originalFileName.get(), index=False)
-            if self.column_name.get() not in df.columns:
+            # ColumnName is used to determine what column to group the data on
+            if self.columnName.get() not in df.columns:
                 if "Zuordnung" in df.columns:
-                    self.column_name.set("Zuordnung")
+                    self.columnName.set("Zuordnung")
                 else:
-                    self.column_name.set = df.columns[0]
-            for groupValue, groupDF in df.groupby(self.column_name.get()):
+                    self.columnName.set = df.columns[0]
+            # Grouping data based on column name
+            for groupValue, groupDF in df.groupby(self.columnName.get()):
                 file_name = self.outPutDirPath + "/" + str(groupValue) + ".xlsx"
                 groupDF.to_excel(file_name, index=False)
                 wb = load_workbook(file_name)
                 ws = wb.active
-
+                # Stlying the workbook
                 for col in ws.columns:
                     max_length = max(len(str(cell.value)) for cell in col)
                     if col[0].value == "Count_ID":
@@ -105,8 +115,8 @@ class App(tk.Tk):
             messagebox.showerror("Missing Output file", "No Output file selected.")
 
     def MergeWorkBooks(self):
-        if self.merge_files_path:
-            for path in self.merge_files_path:
+        if self.mergeFilesPath:
+            for path in self.mergeFilesPath:
                 wb = load_workbook(path)
                 ws = wb.active
                 self.merge_ws.append(ws)
@@ -155,7 +165,7 @@ class Options(tk.Frame):
         self.columnconfigure(0, weight=1)
 
         ttk.Label(self, text="Output Folder Name", anchor="center").grid(row=1, column=0, padx=5, pady=10, sticky="nesw")
-        ttk.Label(self, textvariable=controller.output_folder_name, anchor="center").grid(row=2, column=0, padx=5, pady=5, sticky="nesw")
+        ttk.Label(self, textvariable=controller.outputDirName, anchor="center").grid(row=2, column=0, padx=5, pady=5, sticky="nesw")
         ttk.Button(self, text="Select Folder", command=controller.SelectDirectory).grid(row=3, column=0, padx=5, pady=5, sticky="nswe")
 
 class CreateFiles(tk.Frame):
@@ -168,7 +178,7 @@ class CreateFiles(tk.Frame):
         ttk.Label(self, textvariable=controller.originalFileName, anchor="center").grid(row=1, column=0, padx=5, pady=5, sticky="nesw")
         ttk.Button(self, text="Select File", command=controller.UploadAction).grid(row=2, column=0, padx=5, pady=5, sticky="nesw")
         ttk.Label(self, text="Column Name", anchor="center").grid(row=3, column=0, padx=5, pady=5, sticky="nesw")
-        ttk.Entry(self, textvariable=controller.column_name).grid(row=4, column=0, padx=5,pady=5, sticky="nesw")
+        ttk.Entry(self, textvariable=controller.columnName).grid(row=4, column=0, padx=5,pady=5, sticky="nesw")
         ttk.Button(self, text="Create Groups", command=controller.CreateWorkBooks).grid(row=5, column=0, padx=5, pady=5, sticky="nesw")
 
 class MergeFiles(tk.Frame):
@@ -181,7 +191,7 @@ class MergeFiles(tk.Frame):
         ttk.Label(self, textvariable=controller.countIDFileName, anchor="center").grid(row=1, column=0, padx=5, pady=5, sticky="nesw")
         ttk.Button(self, text="Select File", command= lambda: controller.UploadAction(countIDFile=True)).grid(row=2, column=0, padx=5, pady=5, sticky="nesw")
         ttk.Label(self, text="File Names", anchor="center").grid(row=3, column=0, padx=5, pady=10, sticky="nesw")
-        ttk.Label(self, textvariable=controller.merge_file_names, anchor="center").grid(row=4, column=0, padx=5, pady=5, sticky="nesw")
+        ttk.Label(self, textvariable=controller.mergeFileNames, anchor="center").grid(row=4, column=0, padx=5, pady=5, sticky="nesw")
         ttk.Button(self, text="Select Merge Files", command=controller.UploadActionMultiple).grid(row=5, column=0, padx=5, pady=5, sticky="nesw")
         ttk.Button(self, text="Merge", command=controller.MergeWorkBooks).grid(row=6, column=0, padx=5, pady=5, sticky="nesw")
 
