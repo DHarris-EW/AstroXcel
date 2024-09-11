@@ -20,7 +20,6 @@ class App(tk.Tk):
         self.mergeFileNames = tk.StringVar()
         self.columnName = tk.StringVar()
         self.mergeFilesPath = []
-        self.merge_ws = []
         
         # Variables for output directory
         self.outputDirName = tk.StringVar()
@@ -64,6 +63,7 @@ class App(tk.Tk):
     def UploadActionMultiple(self, event=None):
         # Upload multiple files that are selecting when mergine
         files = filedialog.askopenfilenames(filetypes=[("Excel files", "*.xlsx")])
+        file_paths = ""
 
         # Adds all the file paths to a variable
         for path in files:
@@ -91,7 +91,7 @@ class App(tk.Tk):
             # Count_ID used to keep track of row loction when splitting and merging
             if "Count_ID" not in df.columns:
                 df.insert(0, "Count_ID", range(1, len(df) + 1))
-                df.to_excel(self.outPutDirPath + "/" + "CountID_" + self.originalFileName.get(), index=False)
+                df.to_excel(self.outPutDirPath + "/" + "Astro_" + self.originalFileName.get(), index=False)
             # ColumnName is used to determine what column to group the data on
             if self.columnName.get() not in df.columns:
                 if "Zuordnung" in df.columns:
@@ -111,15 +111,17 @@ class App(tk.Tk):
                         ws.column_dimensions[get_column_letter(col[0].column)].hidden= True
                     ws.column_dimensions[get_column_letter(col[0].column)].width = max_length
                 wb.save(file_name)
+            messagebox.showinfo("Success", "Mulitple excel files created. All files saved to " + self.outPutDirPath)
         else:
             messagebox.showerror("Missing Output file", "No Output file selected.")
 
     def MergeWorkBooks(self):
         if self.mergeFilesPath:
+            merge_ws = []
             for path in self.mergeFilesPath:
                 wb = load_workbook(path)
                 ws = wb.active
-                self.merge_ws.append(ws)
+                merge_ws.append(ws)
             
             df = self.CreateDataFrame(type="countID")
 
@@ -127,19 +129,19 @@ class App(tk.Tk):
                 if self.outPutDirPath:
                     update_cells = {}
 
-                    for ws_idx, ws in enumerate(self.merge_ws):
+                    for ws_idx, ws in enumerate(merge_ws):
                         for row_idx, row in enumerate(ws.rows):
                             update_cells[row[0].value] = {"ws_idx": ws_idx, "row_idx": row_idx + 1}
 
 
-                    for col in self.merge_ws[0].columns:
+                    for col in merge_ws[0].columns:
                         max_length = max(len(str(cell.value)) for cell in col)
 
                         self.countIDWS.column_dimensions[get_column_letter(col[0].column)].width = max_length
 
                     for row in self.countIDWS.rows:
                         if row[0].value in update_cells:
-                            for cell_new, cell in zip(self.merge_ws[update_cells[row[0].value]["ws_idx"]][update_cells[row[0].value]["row_idx"]], row):
+                            for cell_new, cell in zip(merge_ws[update_cells[row[0].value]["ws_idx"]][update_cells[row[0].value]["row_idx"]], row):
                                     if cell_new.has_style:
                                         cell.font = copy(cell_new.font)
                                         cell.border = copy(cell_new.border)
@@ -149,14 +151,34 @@ class App(tk.Tk):
                                         cell.alignment = copy(cell_new.alignment)
                                     cell.value = cell_new.value
 
-                    self.countIDWS.delete_cols(1)
-                    self.countIDWB.save(self.outPutDirPath + "/" + "AstroXCel.xlsx")
+                    self.countIDWB.save(self.outPutDirPath + "/" + self.countIDFileName.get())
+                    messagebox.showinfo("Success", "Files merged successfully. File saved as " + self.countIDFileName.get())
+                    self.countIDFileName.set("")
+                    self.countIDWB = {}
+                    self.countIDWS = {}
+                    self.mergeFilesPath = ""
                 else:
                     messagebox.showerror("Missing Output file", "No Output file selected.")
             else:
-                messagebox.showerror("Missing Master file", "No Master file selected. <Coud_ID> column must be included.")
+                messagebox.showerror("Missing CountID file", "No CountID file selected. <Coud_ID> column must be included.")
         else:
             messagebox.showerror("Missing Merge files", "No files to merge selected.")
+
+    def RemoveCountID(self):
+        if self.outPutDirPath:
+            if self.countIDWB:
+                df = self.CreateDataFrame(type="countID")
+                if "Count_ID" in df.columns:
+                    self.countIDWS.delete_cols(1)
+                    self.countIDWB.save(self.outPutDirPath + "/" + + self.countIDFileName.get())
+                    messagebox.showinfo("Success", "Count_ID column removed. File saved as" + self.countIDFileName.get())
+                else:
+                    messagebox.showerror("Missing CountID column", "This file does not contain the Count_ID column.")
+            else:
+                messagebox.showerror("Missing CountID file", "No CountID file selected. Count_ID column must be included.")
+        else:
+            messagebox.showerror("Missing Output file", "No Output file selected.")
+            
 
 class Options(tk.Frame):
 
@@ -190,10 +212,11 @@ class MergeFiles(tk.Frame):
         ttk.Label(self, text="CountID File Name", anchor="center").grid(row=0, column=0, padx=5, pady=10, sticky="nesw")
         ttk.Label(self, textvariable=controller.countIDFileName, anchor="center").grid(row=1, column=0, padx=5, pady=5, sticky="nesw")
         ttk.Button(self, text="Select File", command= lambda: controller.UploadAction(countIDFile=True)).grid(row=2, column=0, padx=5, pady=5, sticky="nesw")
-        ttk.Label(self, text="File Names", anchor="center").grid(row=3, column=0, padx=5, pady=10, sticky="nesw")
-        ttk.Label(self, textvariable=controller.mergeFileNames, anchor="center").grid(row=4, column=0, padx=5, pady=5, sticky="nesw")
-        ttk.Button(self, text="Select Merge Files", command=controller.UploadActionMultiple).grid(row=5, column=0, padx=5, pady=5, sticky="nesw")
-        ttk.Button(self, text="Merge", command=controller.MergeWorkBooks).grid(row=6, column=0, padx=5, pady=5, sticky="nesw")
+        ttk.Button(self, text="Remove CountID Column", command= controller.RemoveCountID).grid(row=3, column=0, padx=5, pady=5, sticky="nesw")
+        ttk.Label(self, text="File Names", anchor="center").grid(row=4, column=0, padx=5, pady=10, sticky="nesw")
+        ttk.Label(self, textvariable=controller.mergeFileNames, anchor="center").grid(row=5, column=0, padx=5, pady=5, sticky="nesw")
+        ttk.Button(self, text="Select Merge Files", command=controller.UploadActionMultiple).grid(row=6, column=0, padx=5, pady=5, sticky="nesw")
+        ttk.Button(self, text="Merge", command=controller.MergeWorkBooks).grid(row=7, column=0, padx=5, pady=5, sticky="nesw")
 
 app = App()
 sv_ttk.set_theme("dark")
