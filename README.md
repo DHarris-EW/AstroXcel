@@ -28,11 +28,7 @@ pip install -r requirements.txt
 
 ## Usage
 
-1. Run the app:
-   ```
-   python app.py
-   ```
-2. Select an output folder from 'File > Output File' in the menu bar. This is where the Excel files will be saved.
+1. Select an output folder from 'File > Output File' in the menu bar. This is where the Excel files will be saved.
 2. Use the 'Select App' menu bar option to select between OpListe and ActualsCzk.
 3. Usage of each app is for a specific case to remove repetitive laborious tasks.
 
