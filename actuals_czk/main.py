@@ -115,7 +115,7 @@ class ActualsCzk(Frame):
     def save_file(self, df_czk_import):
         
         # Format 'Betrag' column with comma as decimal separator if it exists
-        df_czk_import["Betrag"].astype(str).str.replace(".", ",", regex=False)
+        df_czk_import["Betrag"] = df_czk_import["Betrag"].astype(str).str.replace(".", ",", regex=False)
         
         # txt file are uploaded into the system
         file_path = os.path.join(self.menu_bar.output_dir_path, "ACTUALS CZK.txt")
