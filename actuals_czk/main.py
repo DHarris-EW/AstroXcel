@@ -3,7 +3,6 @@ from tkinter import Frame, messagebox, ttk
 import pandas as pd
 import numpy as np
 from tkinter import filedialog
-from openpyxl.utils import get_column_letter
 
 class ActualsCzk(Frame):
     def __init__(self, master, menu_bar):
@@ -37,10 +36,10 @@ class ActualsCzk(Frame):
                     return
                 messagebox.showinfo("Process Started", "Processing started. Please wait...")
                 # Continues after a file is selected
-                df_eur_cost, df_czk_cost = self._create_cost_dataframes(file_path)
-                df_eur_import, df_czk_import = self._transfer_dataframes(df_eur_cost, df_czk_cost)
+                df_czk_cost = self._create_cost_dataframes(file_path)
+                df_czk_import = self._transfer_dataframes(df_czk_cost)
                 # Saves the import dataframes to an Excel file
-                self.save_file(df_eur_import, df_czk_import)
+                self.save_file(df_czk_import)
             else:
                 messagebox.showerror("Output Directory Not Set", "Please select an output directory first.")
         except Exception as e:
@@ -48,9 +47,9 @@ class ActualsCzk(Frame):
             
     
     def _create_import_dataframes(self):
-        # Creates two empty dataframes for EUR and CZK with the specified columns ready to be imported
+        # Creates one empty dataframes for CZK with the specified columns ready to be imported
         columns = ["Kostenart", "Kostenstelle", "Kostenträger", "Betrag", "Belegdatum", "Belegnummer", "Belegtext", "Extra-Kosteninfo"]
-        return pd.DataFrame(columns=columns), pd.DataFrame(columns=columns)
+        return pd.DataFrame(columns=columns)
 
     def _upload_action(self):
         # Opens a file dialog to select an Excel file
@@ -127,3 +126,4 @@ class ActualsCzk(Frame):
         finally:
             if os.path.exists(file_path):
                 messagebox.showinfo("Success", "Data Copy Successful. \nFile saved as 'Actual Cost_Sesam_Import.xlsx'")
+       
