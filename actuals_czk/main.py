@@ -39,8 +39,8 @@ class ActualsCzk(Frame):
                 # Continues after a file is selected
                 df_eur_cost, df_czk_cost = self._create_cost_dataframes(file_path)
                 df_eur_import, df_czk_import = self._transfer_dataframes(df_eur_cost, df_czk_cost)
-                # Saves the import dataframes to an Excel file
-                self.save_file(df_eur_import, df_czk_import)
+                # Check for duplicates and save the final import file or duplicates file if duplicates are found
+                self.check_duplicates(df_eur_import, df_czk_import)
             else:
                 messagebox.showerror("Output Directory Not Set", "Please select an output directory first.")
         except Exception as e:
@@ -125,34 +125,31 @@ class ActualsCzk(Frame):
                 
         return df_czk_import, df_eur_import
 
-    def save_file(self, df_eur_import, df_czk_import):
-        
-        # Format 'Betrag' column with comma as decimal separator if it exists
-        for df in [df_czk_import, df_eur_import]:
-            df["Betrag"] = df["Betrag"].astype(str).str.replace(".", ",", regex=False)
-        
-        # txt file are uploaded into the system 
-        df_czk_import.to_csv(os.path.join(self.menu_bar.output_dir_path, "ACTUALS CZK.txt"), sep="\t", index=False)
-        df_eur_import.to_csv(os.path.join(self.menu_bar.output_dir_path, "ACTUALS EUR.txt"), sep="\t", index=False)
-        
-        # Saves the import dataframes to an Excel file with auto-adjusted column widths
-        # Not upload to the system. Can be used for reference and verification
-        file_path = os.path.join(self.menu_bar.output_dir_path, "Actual Cost_Sesam_Import.xlsx")
-        try:
-            with pd.ExcelWriter(file_path) as writer:
-                df_czk_import.to_excel(writer, index=False, sheet_name="ACTUALS CZK")
-                df_eur_import.to_excel(writer, index=False, sheet_name="ACTUALS EUR")
-                
-                
-                worksheets = [writer.sheets["ACTUALS CZK"], writer.sheets["ACTUALS EUR"]]
+    def check_duplicates(self, df_eur_import, df_czk_import):
+        # Concatenates the two import dataframes
+        merged_df = pd.concat([df_czk_import, df_eur_import], ignore_index=True)
+        # Replace decimal points with commas in the "Betrag" column
+        merged_df["Betrag"] = merged_df["Betrag"].astype(str).str.replace(".", ",", regex=False)
+        # Extracts duplicate rows
+        duplicate_rows = merged_df[merged_df.duplicated(keep=False)]
+        # If duplicates are found, prompts the user to either remove them or save them to a .txt file
+        if not duplicate_rows.empty:
+            answer = messagebox.askyesno("Duplicates Found", f"Warning: Duplicate rows found.\n\nIf you would like to proceed and remove duplicates, click 'Yes'.\n\nIf you would like to view the duplicates in a .txt file, click 'no' ?")
+            if answer:
+                self.save_file(merged_df.drop_duplicates(), "Actuals_Import.txt", {"title": "Duplicates Removed", "message": "Duplicate rows have been removed. The import file has been saved to 'Actuals_Import.txt' in the output directory."})
+            else:
+                self.save_file(duplicate_rows, "Actuals_Duplicates.txt", {"title": "Duplicates Saved", "message": "Duplicate rows have been saved to 'Actuals_Duplicates.txt' in the output directory."})
+        else:   
+            # If no duplicates are found, returns the merged dataframe as is
+            self.save_file(merged_df, "Actuals_Import.txt", {"title": "File Saved", "message": "The import file has been saved to 'Actuals_Import.txt' in the output directory."})
 
-                for worksheet in worksheets:
-                    for col in worksheet.columns:
-                        max_length = max(len(str(cell.value)) for cell in col)
-                        worksheet.column_dimensions[get_column_letter(col[0].column)].width = max_length
-                        
-            # Show a message box to indicate the file has been saved successfully or not.
+    def save_file(self, file, file_name, messageInfo):    
+        # Creates txt file which are uploaded into the system
+        try:
+            file_path = os.path.join(self.menu_bar.output_dir_path, file_name)
+            file.to_csv(file_path, sep="\t", index=False)
+    
             if os.path.exists(file_path):
-                messagebox.showinfo("Success", "Data Copy Successful. \nFile saved as 'Actual Cost_Sesam_Import.xlsx'")
+                messagebox.showinfo(messageInfo["title"], messageInfo["message"])
         except Exception as e:
             messagebox.showerror("Save Failed", f"An error occurred while saving the file:\n{str(e)}")
