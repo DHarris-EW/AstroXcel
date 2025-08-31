@@ -3,7 +3,6 @@ from tkinter import Frame, messagebox, ttk
 import pandas as pd
 import numpy as np
 from tkinter import filedialog
-from openpyxl.utils import get_column_letter
 
 class ActualsCzk(Frame):
     def __init__(self, master, menu_bar):

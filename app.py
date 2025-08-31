@@ -2,6 +2,7 @@ import sv_ttk
 import tkinter as tk
 
 from actuals_czk.main import ActualsCzk
+from actuals_it.main import ActualsIT
 from opliste.main import OPListe
 from menubar import MenuBar
 
@@ -33,7 +34,7 @@ class App(tk.Tk):
         
     def _init_frames(self):
         # Initializes the frames for ActualsCzk and OPListe
-        for F in (ActualsCzk, OPListe):
+        for F in (ActualsCzk, OPListe, ActualsIT):
             frame = F(self.container, self.menu_bar)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
