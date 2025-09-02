@@ -88,17 +88,19 @@ class ActualsIT(Frame):
     def _transfer_dataframes(self, df_it_cost):
         # Transfers data from the cost dataframes to the import dataframes
         df_it_import = self._create_import_dataframes()
+        code_prefix = ""
         current_code = ""
-        new_row = {}
+        new_rows = []
 
         # Iterate through the columns and fill the import dataframes with the appropriate values
         for i, row in df_it_cost.iterrows():
             if pd.notna(row["Unnamed: 1"]) and row["Unnamed: 1"] != 0.0:
-                if current_code == "":
-                    current_code = row["Unnamed: 1"]
+                if code_prefix == "":
+                    code_prefix = row["Unnamed: 1"]
                 else:
-                    code = self._format_code(current_code, row["Unnamed: 1"])
+                    code = self._format_code(code_prefix, row["Unnamed: 1"])
                     current_code = code
+                    code_prefix = ""
                 # Continue to next row after setting the code
                 continue
             # If there's a valid "Data Doc." and current_code is set, create a new row as all information needed is on that row
@@ -113,13 +115,13 @@ class ActualsIT(Frame):
                     "Belegtext": row["Causale"],
                     "Extra-Kosteninfo": ""
                 }
+                new_rows.append(new_row)
             
             # Append the new row to the dataframe if it has all required fields
-            if len(new_row) == 8:
-                df_it_import = pd.concat([df_it_import, pd.DataFrame([new_row])], ignore_index=True)
-                # Reset for next entry
-                current_code = ""
-                new_row = {}
+        if new_rows:
+            df_it_import = pd.concat([df_it_import, pd.DataFrame(new_rows)], ignore_index=True)
+            # Reset for next entry
+            new_row = {}
             
         return df_it_import
 
