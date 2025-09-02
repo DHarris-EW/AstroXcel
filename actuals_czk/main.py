@@ -66,24 +66,21 @@ class ActualsCzk(Frame):
         columns_to_keep = ["ACCT # (konv.)", "Unnamed: 15", "DESCRIPTION", "Date", "POHODA #. (č. dokladu)"]
     
         # Read the Excel file and create dataframes for EUR and CZK sheets
-        temp_df_eur = pd.read_excel(file_path, sheet_name="ACTUALS EUR", header=8)
-        temp_df_czk = pd.read_excel(file_path, sheet_name="ACTUALS CZK", header=8)
+        sheets = pd.read_excel(file_path, sheet_name=["ACTUALS EUR", "ACTUALS CZK"], header=8)
             
-        # Replace 0.0, "", and " " with NaN 
-        temp_df_czk = temp_df_czk.replace({0.0: np.nan, "": np.nan, " ": np.nan}, regex=False)
-        temp_df_eur = temp_df_eur.replace({0.0: np.nan, "": np.nan, " ": np.nan}, regex=False)
-       
-        # Keep only the specified columns and drop completely empty columns
-        df_eur_cost = temp_df_eur[[col for col in columns_to_keep if col in temp_df_eur.columns]]
-        df_czk_cost = temp_df_czk[[col for col in columns_to_keep if col in temp_df_czk.columns]]
+        def clean_dataframe(df):
+            # Replace 0.0, "", and " " with NaN 
+            df = df.replace({0.0: np.nan, "": np.nan, " ": np.nan}, regex=False)
+            # Keep only the specified columns and drop completely empty columns
+            df = df[[col for col in columns_to_keep if col in df.columns]]
+            # Drop rows where all cells in the row are NaN. Retain rows with actual data
+            df = df.dropna(how='all')
+            # Fill NaN values in rows with data that used to be 0.0, "", or " "
+            df = df.fillna(0.00)
+            return df
         
-        # Drop rows where all cells in the row are NaN. Retain rows with actual data
-        df_eur_cost = df_eur_cost.dropna(how='all')
-        df_czk_cost = df_czk_cost.dropna(how='all')
-        
-        # Fill NaN values in rows with data that used to be 0.0, "", or " "
-        df_eur_cost = df_eur_cost.fillna(0.00)
-        df_czk_cost = df_czk_cost.fillna(0.00)
+        df_eur_cost = clean_dataframe(sheets["ACTUALS EUR"])
+        df_czk_cost = clean_dataframe(sheets["ACTUALS CZK"])
         
         return df_eur_cost, df_czk_cost
     
@@ -91,37 +88,34 @@ class ActualsCzk(Frame):
         # Transfers data from the cost dataframes to the import dataframes
         df_eur_import, df_czk_import = self._create_import_dataframes()
 
-        # Iterate through the columns and fill the import dataframes with the appropriate values
-        for col in df_eur_import.columns:
-            if col == "Kostenart":
-                # Remove the last 4 characters from the "ACCT # (konv.)" column and append "0000"
-                df_eur_import[col] = df_eur_cost["ACCT # (konv.)"].astype(str).str[:-4] + "0000"
-                df_czk_import[col] = df_czk_cost["ACCT # (konv.)"].astype(str).str[:-4] + "0000"
-            elif col == "Kostenstelle":
-                # Static value for "Kostenstelle"
-                df_eur_import[col] = "NF"
-                df_czk_import[col] = "NF"
-            elif col == "Kostenträger":
-                # Static value for "Kostenträger"
-                df_eur_import[col] = "1015-70108-01-1"
-                df_czk_import[col] = "1015-70108-01-1"
-            elif col == "Betrag":
-                # Format the "Unnamed: 15" column (column p) as a float with two decimal places 
-                df_eur_import[col] = df_eur_cost["Unnamed: 15"].apply(lambda x: f"{x:.2f}")
-                df_czk_import[col] = df_czk_cost["Unnamed: 15"].apply(lambda x: f"{x:.2f}")
-            elif col == "Belegdatum":
-                # Use the "Date" column for "Belegdatum"
-                df_eur_import[col] = pd.to_datetime(df_eur_cost["Date"]).dt.strftime("%d.%m.%Y")
-                df_czk_import[col] = pd.to_datetime(df_czk_cost["Date"]).dt.strftime("%d.%m.%Y")
-            elif col == "Belegnummer":
-                # Use the "POHODA #. (č. dokladu)" column for "Belegnummer"
-                df_eur_import[col] = df_eur_cost["POHODA #. (č. dokladu)"]
-                df_czk_import[col] = df_czk_cost["POHODA #. (č. dokladu)"]
-            elif col == "Belegtext":
-                # Use the "DESCRIPTION" column for "Belegtext"
-                df_eur_import[col] = df_eur_cost["DESCRIPTION"]
-                df_czk_import[col] = df_czk_cost["DESCRIPTION"]
-                
+        # Remove the last 4 characters from the "ACCT # (konv.)" column and append "0000"
+        df_eur_import["Kostenart"] = df_eur_cost["ACCT # (konv.)"].astype(str).str[:-4] + "0000"
+        df_czk_import["Kostenart"] = df_czk_cost["ACCT # (konv.)"].astype(str).str[:-4] + "0000"
+    
+        # Static value for "Kostenstelle"
+        df_eur_import["Kostenstelle"] = "NF"
+        df_czk_import["Kostenstelle"] = "NF"
+    
+        # Static value for "Kostenträger"
+        df_eur_import["Kostenträger"] = "1015-70108-01-1"
+        df_czk_import["Kostenträger"] = "1015-70108-01-1"
+    
+        # Format the "Unnamed: 15" column (column p) as a float with two decimal places 
+        df_eur_import["Betrag"] = df_eur_cost["Unnamed: 15"].apply(lambda x: f"{x:.2f}")
+        df_czk_import["Betrag"] = df_czk_cost["Unnamed: 15"].apply(lambda x: f"{x:.2f}")
+    
+        # Use the "Date" column for "Belegdatum"
+        df_eur_import["Belegdatum"] = pd.to_datetime(df_eur_cost["Date"]).dt.strftime("%d.%m.%Y")
+        df_czk_import["Belegdatum"] = pd.to_datetime(df_czk_cost["Date"]).dt.strftime("%d.%m.%Y")
+    
+        # Use the "POHODA #. (č. dokladu)" column for "Belegnummer"
+        df_eur_import["Belegnummer"] = df_eur_cost["POHODA #. (č. dokladu)"]
+        df_czk_import["Belegnummer"] = df_czk_cost["POHODA #. (č. dokladu)"]
+    
+        # Use the "DESCRIPTION" column for "Belegtext"
+        df_eur_import["Belegtext"] = df_eur_cost["DESCRIPTION"]
+        df_czk_import["Belegtext"] = df_czk_cost["DESCRIPTION"]
+        
         return df_czk_import, df_eur_import
 
     def check_duplicates(self, df_eur_import, df_czk_import):

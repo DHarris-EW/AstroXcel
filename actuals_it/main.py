@@ -60,11 +60,11 @@ class ActualsIT(Frame):
         return file_path
         
     def _create_cost_dataframes(self, file_path):
-        # Creates two dataframs one for EUR and one for CZK based on the cost excel file uploaded by the user
+        # Creates one dataframe for IT based on the cost excel file uploaded by the user
         
         columns_to_keep = ["Unnamed: 1", "Data Mov.", "Data Doc.", "Causale", "Unnamed: 17"]
 
-        # Read the Excel file and create dataframes for EUR and CZK sheets
+        # Read the Excel file and create a dataframe
         temp_df_it = pd.read_excel(file_path, header=10)
         # Debug: Save the raw dataframe to inspect its structure
         # temp_df_it.to_excel(os.path.join(self.menu_bar.output_dir_path, "debug_it.xlsx"), index=False)
