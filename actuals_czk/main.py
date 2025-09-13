@@ -39,7 +39,7 @@ class ActualsCzk(Frame):
                 df_eur_cost, df_czk_cost = self._create_cost_dataframes(file_path)
                 df_eur_import, df_czk_import = self._transfer_dataframes(df_eur_cost, df_czk_cost)
                 # Check for duplicates and save the final import file or duplicates file if duplicates are found
-                self.check_duplicates(df_eur_import, df_czk_import)
+                self._check_duplicates(df_eur_import, df_czk_import)
             else:
                 messagebox.showerror("Output Directory Not Set", "Please select an output directory first.")
         except Exception as e:
@@ -118,9 +118,8 @@ class ActualsCzk(Frame):
         
         return df_czk_import, df_eur_import
 
-    def check_duplicates(self, df_eur_import, df_czk_import):
+    def _check_duplicates(self, df_eur_import, df_czk_import):
         # Replace decimal points with commas in the "Betrag" column
-        # merged_df["Betrag"] = merged_df["Betrag"].astype(str).str.replace(".", ",", regex=False)
         df_eur_import["Betrag"] = df_eur_import["Betrag"].astype(str).str.replace(".", ",", regex=False)
         df_czk_import["Betrag"] = df_czk_import["Betrag"].astype(str).str.replace(".", ",", regex=False)
         # Extracts duplicate rows
@@ -132,17 +131,17 @@ class ActualsCzk(Frame):
             if not df_duplicates.empty:
                 answer = messagebox.askyesno(f"{sheet_name} Duplicates Found", f"Warning: Duplicate {sheet_name} rows found.\n\nIf you would like to proceed and remove {sheet_name} duplicates, click 'Yes'.\n\nIf you would like to view the duplicates in a .txt file, click 'no' ?")
                 if answer:
-                    self.save_file(df.drop_duplicates(), f"{file_name}_Imports.txt", {"title": f"{sheet_name} Duplicates Removed", "message": f"Duplicate {sheet_name} rows have been removed. The import file has been saved to '{file_name}_Import.txt' in the output directory."})
+                    self._save_file(df.drop_duplicates(), f"{file_name}_Imports.txt", {"title": f"{sheet_name} Duplicates Removed", "message": f"Duplicate {sheet_name} rows have been removed. The import file has been saved to '{file_name}_Import.txt' in the output directory."})
                 else:
-                    self.save_file(df_duplicates, f"{file_name}_Duplicates.txt", {"title": f"{sheet_name} Duplicates Saved", "message": f"Duplicate EUR rows have been saved to '{file_name}_Duplicates.txt' in the output directory."})
+                    self._save_file(df_duplicates, f"{file_name}_Duplicates.txt", {"title": f"{sheet_name} Duplicates Saved", "message": f"Duplicate EUR rows have been saved to '{file_name}_Duplicates.txt' in the output directory."})
             else:   
                 # If no duplicates are found, returns the merged dataframe as is
-                self.save_file(df, f"{file_name}_Import.txt", {"title": "File Saved", "message": f"The import file has been saved to '{file_name}_Import.txt' in the output directory."})
+                self._save_file(df, f"{file_name}_Import.txt", {"title": "File Saved", "message": f"The import file has been saved to '{file_name}_Import.txt' in the output directory."})
         
         process_duplicates("ACTUALS_EUR", "EUR", df_eur_import, eur_duplicates)
         process_duplicates("ACTUALS_CZK", "CZK", df_czk_import, czk_duplicates)
 
-    def save_file(self, file, file_name, messageInfo):    
+    def _save_file(self, file, file_name, messageInfo):    
         # Creates txt file which are uploaded into the system
         try:
             file_path = os.path.join(self.menu_bar.output_dir_path, file_name)
