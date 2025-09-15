@@ -1,5 +1,6 @@
 from tkinter import Menu, messagebox, StringVar, filedialog
 from actuals_czk.main import ActualsCzk
+from actuals_it.main import ActualsIT
 from opliste.main import OPListe
 
 class MenuBar(Menu):
@@ -21,6 +22,7 @@ class MenuBar(Menu):
         app_menu = Menu(self, tearoff=0)
         app_menu.add_command(label="OPListe", command=lambda: parent.show_frame(OPListe))
         app_menu.add_command(label="ActualsCzk", command=lambda: parent.show_frame(ActualsCzk))
+        app_menu.add_command(label="ActualsIT", command=lambda: parent.show_frame(ActualsIT))
         self.add_cascade(label="Select App", menu=app_menu)
         
         disclaimer  = Menu(self, tearoff=0)

@@ -9,7 +9,8 @@ It uses Python, pandas, openpyxl, and a modern Tkinter theme (sv_ttk).
 - OpListe > Split and merge excel files
     - Split: Break a master Excel file into seperate files based on account number. Each account number will then have its own file that can be sent to the respective accountant
     - Merge: After the accountants input their data, they are sent back and merge back into the master Excel file maintaing the orignial format.
-- Actuals_Czk > Transfer specific data from one Excel file to another
+- Actuals_Czk > Transfer specific data from an Czk and Eur cost report to a text file
+- Actuals_IT > Transfer specific data from an Italian cost report to a text file
 - User-friendly interface
 - Saves output to your chosen directory
 
@@ -28,8 +29,17 @@ pip install -r requirements.txt
 
 ## Usage
 
+<<<<<<< HEAD
 1. Select an output folder from 'File > Output File' in the menu bar. This is where the Excel files will be saved.
 2. Use the 'Select App' menu bar option to select between OpListe and ActualsCzk.
+=======
+1. Run the app:
+   ```
+   python app.py
+   ```
+2. Select an output folder from 'File > Output File' in the menu bar. This is where the Excel files will be saved.
+2. Use the 'Select App' menu bar option to select between OpListe, ActualsCzk and ActualsIT.
+>>>>>>> ReimplementEURDataframe
 3. Usage of each app is for a specific case to remove repetitive laborious tasks.
 
 ## Notes
