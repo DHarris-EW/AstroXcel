@@ -145,7 +145,7 @@ class ActualsCzk(Frame):
         # Creates txt file which are uploaded into the system
         try:
             file_path = os.path.join(self.menu_bar.output_dir_path, file_name)
-            file.to_csv(file_path, sep="\t", index=False)
+            file.to_csv(file_path, sep="\t", index=False, encoding="utf-8-sig")
     
             if os.path.exists(file_path):
                 messagebox.showinfo(messageInfo["title"], messageInfo["message"])
