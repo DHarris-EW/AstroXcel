@@ -105,15 +105,25 @@ class ActualsIT(Frame):
                 continue
             # If there's a valid "Data Doc." and current_code is set, create a new row as all information needed is on that row
             if pd.notna(row["Data Doc."]) and row["Data Doc."] != 0.0 and current_code:
+                date = pd.to_datetime(row["Data Doc."]).strftime("%d.%m.%Y")
+                periode = 0
+                # Following the system periods
+                if date.dt.month == 1:
+                    periode = 12
+                else:
+                    periode = date.dt.month -1
                 new_row = {
                     "Kostenart": current_code,
                     "Kostenstelle": "NF",
                     "Kostenträger": "1015-70108-01-1",
-                    "Belegdatum": pd.to_datetime(row["Data Doc."]).strftime("%d.%m.%Y"),
+                    "Belegdatum": date,
                     "Betrag": f"{row['Unnamed: 17']:.2f}".replace(".", ","),
                     "Belegnummer": "",
                     "Belegtext": row["Causale"],
-                    "Extra-Kosteninfo": ""
+                    "Extra-Kosteninfo": "",
+                    "Jahr": date.dt.day,
+                    "Periode": periode,
+                    "Tag": date.dt.year
                 }
                 new_rows.append(new_row)
             
