@@ -1,18 +1,17 @@
 import os
-from tkinter import Frame, messagebox, ttk
 import pandas as pd
-from tkinter import filedialog
+from tkinter import Frame, messagebox, ttk, filedialog
 
 class PeriodeSAP(Frame):
     def __init__(self, master, menu_bar):
         super().__init__(master, highlightbackground="gray24")
 
-        self.file_name="debug_periode"
+        self.file_name = "debug_periode"
+        self.menu_bar = menu_bar
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         
-        self.menu_bar = menu_bar
 
         self._init_layout()    
         
@@ -28,40 +27,47 @@ class PeriodeSAP(Frame):
     
 
     def _run(self):
-        # Called when the 'Select File' button is clicked
+        # Called when the 'Select File' button is clicked 
         try:
             if self.menu_bar.output_dir_path :
                 file_path = self._upload_action()
                 if not file_path:
                     return
+                
                 messagebox.showinfo("Process Started", "Processing started. Please wait...")
+
                 periode_df = self._change_periodejahr(file_path)
-                self._save_file(periode_df, {"title": "File Saved", "message": f"The import file has been saved to '{self.file_name}_Import.txt' in the output directory."})
+
+                self._process_file(periode_df, {"title": "File Saved", "message": f"The import file has been saved to '{self.file_name}_Import.txt' in the output directory."})
             else:
                 messagebox.showerror("Output Directory Not Set", "Please select an output directory first.")
+        except (pd.errors.ParserError, OSError) as e:
+            messagebox.showerror("Processing Error", f"An error occurred while processing the file:\n{str(e)}")
         except Exception as e:
-            messagebox.showerror("Error", f"An error occurred: {str(e)}")
+            messagebox.showerror("Unexpected Error", f"An unexpected error occurred: \n{str(e)}")
 
     def _upload_action(self):
-        # Opens a file dialog to select an Excel file
-        # Excel file to be uploaded is specifc for this application
+        # Opens a file dialog to select a text file
+        # Text file to be uploaded is specifc from SAP
         file_path = filedialog.askopenfilename(title="Select text file", filetypes=[("Text files", "*.txt")])
         if not file_path:
             return
         
         return file_path
     
-    def _change_periodejahr(self, file_path):
+    def _process_file(self, file_path):
         df = pd.read_csv(file_path, sep="\t", decimal=",")
-        df["PERIODJAHR"] = df["PERIODJAHR"].apply(lambda x: x-1)
+        df["PERIODJAHR"] = df["PERIODJAHR"] - 1
         return df
     
-    def _save_file(self, df, messageInfo):
+    def _save_file(self, df, message_info):
         try:
             file_path = os.path.join(self.menu_bar.output_dir_path, f"{self.file_name}.xlsx")
             df.to_excel(file_path, index=False)
 
-            messagebox.showinfo(messageInfo["title"], messageInfo["message"])
+            messagebox.showinfo(message_info["title"], message_info["message"])
+        except PermissionError:
+            messagebox.showerror("Save Failed", "Permission denied. Please close the file if it is already open.")
         except Exception as e:
             messagebox.showerror("Save Failed", f"An error occurred while saving the file:\n{str(e)}")
 
