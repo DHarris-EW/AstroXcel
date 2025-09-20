@@ -3,29 +3,35 @@ from tkinter import Frame, messagebox, ttk
 import pandas as pd
 import numpy as np
 from tkinter import filedialog
+from actuals_czk.compare_files import CompareFiles
 
 class ActualsCzk(Frame):
     def __init__(self, master, menu_bar):
-        super().__init__(master, highlightbackground="gray24")
+        super().__init__(master)
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         
         self.menu_bar = menu_bar
 
-        self._init_layout()    
+        self._init_layout(menu_bar)    
         
-    def _init_layout(self):
+    def _init_layout(self, menu_bar):
         # Initializes the layout of the ActualsCzk frame
         label_container = Frame(self)
         label_container.grid(row=0, column=0, sticky="ew")
         label_container.grid_columnconfigure(0, weight=1)
+        self.compare_files = CompareFiles(self, menu_bar)
+
         
-        ttk.Label(label_container, text="1. Select Acutals CZK File", anchor="center").grid(row=0, column=0, padx=5, sticky="ew")
+        ttk.Label(label_container, text="1. Select Actuals CZK File", anchor="center").grid(row=0, column=0, padx=5, sticky="ew")
         ttk.Label(label_container, text="2. Wait for prompt to say data copy is complete", anchor="center").grid(row=1, column=0, padx=5, sticky="ew")
         ttk.Label(label_container, text="3. Check output folder for file", anchor="center").grid(row=2, column=0, padx=5, sticky="ew")
         ttk.Label(label_container, text="").grid(row=3, column=0) # Empty label for spacing
         ttk.Button(label_container, text="Select File and Run", command=self._run).grid(row=4, column=0, padx=5)
+        ttk.Label(label_container, text="").grid(row=5, column=0) # Empty label for spacing
+        self.compare_files.grid(row=6, column=0, padx=5, pady=5, sticky="nesw")
+
     
     def _run(self):
         # Called when the 'Select File' button is clicked 
@@ -84,7 +90,7 @@ class ActualsCzk(Frame):
         
         return df_eur_cost, df_czk_cost
     
-    def _transfer_dataframes(self, df_czk_cost, df_eur_cost):
+    def _transfer_dataframes(self, df_eur_cost, df_czk_cost):
         # Transfers data from the cost dataframes to the import dataframes
         df_eur_import, df_czk_import = self._create_import_dataframes()
 
