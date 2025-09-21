@@ -22,8 +22,9 @@ class PeriodeSAP(Frame):
         label_container.grid_columnconfigure(0, weight=1)
         
         ttk.Label(label_container, text="1. Select SAP file", anchor="center").grid(row=0, column=0, padx=5, sticky="ew")
-        ttk.Label(label_container, text="").grid(row=1, column=0) # Empty label for spacing
-        ttk.Button(label_container, text="Select File and Run", command=self._run).grid(row=4, column=0, padx=5)
+        ttk.Label(label_container, text="2. App will minus 1 from PeriodeJahr", anchor="center").grid(row=1, column=0, padx=5, sticky="ew")
+        ttk.Label(label_container, text="").grid(row=2, column=0) # Empty label for spacing
+        ttk.Button(label_container, text="Select File and Run", command=self._run).grid(row=3, column=0, padx=5)
     
 
     def _run(self):

@@ -43,12 +43,6 @@ class ActualsIT(Frame):
                 messagebox.showerror("Output Directory Not Set", "Please select an output directory first.")
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {str(e)}")
-            
-    
-    def _create_import_dataframes(self):
-        # Creates two empty dataframes for EUR and CZK with the specified columns ready to be imported
-        columns = ["Kostenart", "Kostenstelle", "Kostenträger", "Betrag", "Belegdatum", "Belegnummer", "Belegtext", "Extra-Kosteninfo"]
-        return pd.DataFrame(columns=columns)
 
     def _upload_action(self):
         # Opens a file dialog to select an Excel file
@@ -87,13 +81,12 @@ class ActualsIT(Frame):
     
     def _transfer_dataframes(self, df_it_cost):
         # Transfers data from the cost dataframes to the import dataframes
-        df_it_import = self._create_import_dataframes()
         code_prefix = ""
         current_code = ""
         new_rows = []
 
         # Iterate through the columns and fill the import dataframes with the appropriate values
-        for i, row in df_it_cost.iterrows():
+        for _, row in df_it_cost.iterrows():
             if pd.notna(row["Unnamed: 1"]) and row["Unnamed: 1"] != 0.0:
                 if code_prefix == "":
                     code_prefix = row["Unnamed: 1"]
@@ -106,18 +99,14 @@ class ActualsIT(Frame):
             # If there's a valid "Data Doc." and current_code is set, create a new row as all information needed is on that row
             if pd.notna(row["Data Doc."]) and row["Data Doc."] != 0.0 and current_code:
                 date = pd.to_datetime(row["Data Doc."]).strftime("%d.%m.%Y")
-                periode = 0
-                # Following the system periods
-                if date.dt.month == 1:
-                    periode = 12
-                else:
-                    periode = date.dt.month -1
+                periode = 12 if date.month == 1 else date.month - 1
+                betrag = f"{row['Unnamed: 17']:.2f}".replace(".", ",")
                 new_row = {
                     "Kostenart": current_code,
                     "Kostenstelle": "NF",
                     "Kostenträger": "1015-70108-01-1",
                     "Belegdatum": date,
-                    "Betrag": f"{row['Unnamed: 17']:.2f}".replace(".", ","),
+                    "Betrag": betrag,
                     "Belegnummer": "",
                     "Belegtext": row["Causale"],
                     "Extra-Kosteninfo": "",
@@ -127,11 +116,11 @@ class ActualsIT(Frame):
                 }
                 new_rows.append(new_row)
             
-            # Append the new row to the dataframe if it has all required fields
+        # If new_rows create a dataframe with the new_rows
         if new_rows:
-            df_it_import = pd.concat([df_it_import, pd.DataFrame(new_rows)], ignore_index=True)
-            # Reset for next entry
-            new_row = {}
+            df_it_import = pd.DataFrame(new_rows)
+        else:
+            df_it_import = pd.DataFrame()
             
         return df_it_import
 
