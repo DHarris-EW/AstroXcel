@@ -62,7 +62,7 @@ class PeriodeSAP(Frame):
     def _save_file(self, df, message_info):
         try:
             file_path = os.path.join(self.menu_bar.output_dir_path, f"{self.file_name}.txt")
-            df.to_csv(file_path, sep="\t", index=False)
+            df.to_csv(file_path, sep="\t", index=False, encoding="utf-8-sig")
 
             messagebox.showinfo(message_info["title"], message_info["message"])
         except PermissionError:

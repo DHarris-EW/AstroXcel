@@ -119,8 +119,9 @@ class CompareFiles(Frame):
                             new_rows.append(new_row)
                         if new_rows:
                             output = pd.DataFrame(new_rows)
-                            file_name = f"{name}.xlsx"
-                            output.to_excel(os.path.join(self.menu_bar.output_dir_path, file_name), index=False)
+                            file_name = f"{name}.txt"
+                            file_path = os.path.join(self.menu_bar.output_dir_path, file_name)
+                            output.to_csv(file_path, sep="\t", index=False, encoding="utf-8-sig")
                             print(f"Saved {file_name}")
                         else:
                             print(f"No new rows for {name}")
