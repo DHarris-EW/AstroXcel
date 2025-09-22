@@ -122,7 +122,7 @@ class ActualsCzk(Frame):
         df_eur_import["Belegtext"] = df_eur_cost["DESCRIPTION"]
         df_czk_import["Belegtext"] = df_czk_cost["DESCRIPTION"]
         
-        return df_czk_import, df_eur_import
+        return df_eur_import, df_czk_import
 
     def _check_duplicates(self, df_eur_import, df_czk_import):
         # Replace decimal points with commas in the "Betrag" column

@@ -1,4 +1,4 @@
-from tkinter import Frame, ttk, filedialog, messagebox, StringVar
+from tkinter import Frame, ttk, filedialog, messagebox, StringVar, simpledialog
 import numpy as np
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
@@ -77,22 +77,32 @@ class CompareFiles(Frame):
         return file1_df_eur, file1_df_czk, file2_df_eur, file2_df_czk
 
     def _run(self):
-        new_rows = []
         if self.menu_bar.output_dir_path:
             if self.file1_path:
                 if self.file1_path:
                     messagebox.showinfo("Process Started", "Processing started. Please wait...")
                     file1_df_eur, file1_df_czk, file2_df_eur, file2_df_czk  = self._create_dataframes()
-                    diff_eur = file1_df_eur.merge(file2_df_eur, how="outer", indicator=True)
-                    diff_czk = file1_df_czk.merge(file2_df_czk, how="outer", indicator=True)
-                    fdiff_eur = diff_eur[diff_eur['_merge'] != 'both']
-                    fdiff_czk = diff_czk[diff_czk['_merge'] != 'both']
-                    for _, row in fdiff_eur.iterrows():
-                        if row["ACCT # (konv.)"]:
-                            print(row["ACCT # (konv.)"])
+                    eur_comparison = file1_df_eur.merge(file2_df_eur, how="outer", indicator=True)
+                    czk_comparison = file1_df_czk.merge(file2_df_czk, how="outer", indicator=True)
+                    eur_unique_rows = eur_comparison[eur_comparison['_merge'] != 'both']
+                    czk_unique_rows = czk_comparison[czk_comparison['_merge'] != 'both']
+                    # eur_common_rows = eur_comparison[eur_comparison['_merge'] == 'both'].drop(columns=['_merge'])
+                    # czk_common_rows = czk_comparison[czk_comparison['_merge'] == 'both'].drop(columns=['_merge'])
+
+                    datasets = {"eur_new": eur_unique_rows, "czk_new": czk_unique_rows}
+                    
+                    for name, df in datasets.items():
+                        if df.empty:
+                            print(f"Skipping {name}")
+                            continue
+                        new_rows = []
+                        jahr = simpledialog.askinteger("jahr", "Enter the Jahr")
+                        periode = simpledialog.askinteger("periode", "Enter the Periode")
+                        tag = simpledialog.askinteger("tag", "Enter the Tag")
+                        for _, row in df.iterrows():
                             date = pd.to_datetime(row["Date"])
-                            periode = 12 if date.month == 1 else date.month - 1
                             betrag = f"{row['Unnamed: 15']:.2f}".replace(".", ",")
+                            
                             new_row = {
                                 "Kostenart": str(row["ACCT # (konv.)"])[:-4] + "0000",
                                 "Kostenstelle": "NF",
@@ -102,41 +112,19 @@ class CompareFiles(Frame):
                                 "Belegnummer": row["POHODA #. (č. dokladu)"],
                                 "Belegtext": row["DESCRIPTION"],
                                 "Extra-Kosteninfo": "",
-                                "Jahr": date.year,
-                                "Periode": periode,
-                                "Tag": date.day
+                                "Jahr": jahr if jahr else "",
+                                "Periode": periode if periode else "",
+                                "Tag": tag if tag else ""
                             }
                             new_rows.append(new_row)
-                    
-                    output_eur = pd.DataFrame(new_rows)
-                    output_eur.to_excel(os.path.join(self.menu_bar.output_dir_path, "compared_eur.xlsx"), index=False)
-                    new_rows = []
+                        if new_rows:
+                            output = pd.DataFrame(new_rows)
+                            file_name = f"{name}.xlsx"
+                            output.to_excel(os.path.join(self.menu_bar.output_dir_path, file_name), index=False)
+                            print(f"Saved {file_name}")
+                        else:
+                            print(f"No new rows for {name}")
 
-                    for _, row in fdiff_czk.iterrows():
-                        if row["ACCT # (konv.)"]:
-                            print(row["ACCT # (konv.)"])
-                            date = pd.to_datetime(row["Date"])
-                            periode = 12 if date.month == 1 else date.month - 1
-                            betrag = f"{row['Unnamed: 15']:.2f}".replace(".", ",")
-                            new_row = {
-                                "Kostenart": str(row["ACCT # (konv.)"])[:-4] + "0000",
-                                "Kostenstelle": "NF",
-                                "Kostenträger": "1015-70108-01-1",
-                                "Belegdatum": date.strftime("%d.%m.%Y"),
-                                "Betrag": betrag,
-                                "Belegnummer": row["POHODA #. (č. dokladu)"],
-                                "Belegtext": row["DESCRIPTION"],
-                                "Extra-Kosteninfo": "",
-                                "Jahr": date.year,
-                                "Periode": periode,
-                                "Tag": date.day
-                            }
-                            new_rows.append(new_row)
-
-                    output_czk = pd.DataFrame(new_rows)
-                    output_czk.to_excel(os.path.join(self.menu_bar.output_dir_path, "compared_czk.xlsx"), index=False)
-
-                    
                 else:
                     messagebox.showerror("Missing file", "Please select file 2.")
             else:
