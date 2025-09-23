@@ -56,7 +56,7 @@ class ActualsIT(Frame):
     def _create_cost_dataframes(self, file_path):
         # Creates one dataframe for IT based on the cost excel file uploaded by the user
         
-        columns_to_keep = ["Unnamed: 1", "Data Mov.", "Data Doc.", "Causale", "Unnamed: 17"]
+        columns_to_keep = ["Unnamed: 1", "Data Mov.", "Date", "Data Doc.", "Causale", "Unnamed: 17"]
 
         # Read the Excel file and create a dataframe
         temp_df_it = pd.read_excel(file_path, header=10)
@@ -99,8 +99,8 @@ class ActualsIT(Frame):
             # If there's a valid "Data Doc." and current_code is set, create a new row as all information needed is on that row
             if pd.notna(row["Data Doc."]) and row["Data Doc."] != 0.0 and current_code:
                 date = pd.to_datetime(row["Data Doc."])
-                date = pd.to_datetime(row["Data Doc."])
-                periode = 12 if date.month == 1 else date.month - 1
+                periode_date = pd.to_datetime(row["Data Mov."])
+                periode = 12 if periode_date.month == 1 else periode_date.month - 1
                 betrag = f"{row['Unnamed: 17']:.2f}".replace(".", ",")
                 new_row = {
                     "Kostenart": current_code,
@@ -111,9 +111,9 @@ class ActualsIT(Frame):
                     "Belegnummer": "",
                     "Belegtext": row["Causale"],
                     "Extra-Kosteninfo": "",
-                    "Jahr": date.year,
+                    "Jahr": periode_date.year,
                     "Periode": periode,
-                    "Tag": date.day
+                    "Tag": periode_date.day
                 }
                 new_rows.append(new_row)
             

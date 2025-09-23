@@ -55,7 +55,7 @@ class PeriodeSAP(Frame):
         return file_path
     
     def _process_file(self, file_path):
-        df = pd.read_csv(file_path, sep="\t", decimal=",")
+        df = pd.read_csv(file_path, sep="\t", decimal=",", encoding="utf-8-sig")
         df["PERIODJAHR"] = df["PERIODJAHR"] - 1
         return df
     

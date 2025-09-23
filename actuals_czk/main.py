@@ -29,8 +29,6 @@ class ActualsCzk(Frame):
         ttk.Label(label_container, text="3. Check output folder for file", anchor="center").grid(row=2, column=0, padx=5, sticky="ew")
         ttk.Label(label_container, text="").grid(row=3, column=0) # Empty label for spacing
         ttk.Button(label_container, text="Select File and Run", command=self._run).grid(row=4, column=0, padx=5)
-        ttk.Label(label_container, text="").grid(row=5, column=0) # Empty label for spacing
-        self.compare_files.grid(row=6, column=0, padx=5, pady=5, sticky="nesw")
 
     
     def _run(self):
