@@ -43,14 +43,14 @@ class ActualsIT(Frame):
             messagebox.showerror("Error", f"An error occurred: \n{str(e)}\n\n{tb}")
 
     def _select_and_clean_file(self):
-        df = upload_file(header=10)
+        df = upload_file(file_type="excel", reader="excel", header=10)
         return clean_dataframe(df, ["Unnamed: 1", "Data Mov.", "Date", "Data Doc.", "Causale", "Unnamed: 17"])
     
     def _save_import_file(self, df_import):
-        save_file(file=df_import, 
+        save_file(df=df_import, 
                       file_name="ActualsIT_Import.txt", 
                       output_loc=self.menu_bar.output_dir_path, 
-                      messageInfo={"title": "File Saved", 
+                      message_info={"title": "File Saved", 
                                    "message": "The import file has been saved to 'ActualsIT_Import.txt' in the output directory"})
     
     def _format_code(self, prefix, suffix):

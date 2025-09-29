@@ -1,8 +1,6 @@
 import numpy as np
 
 def clean_dataframe(df, keep_columns):
-    # Creates one dataframe for IT based on the cost excel file uploaded by the user
-    
     # Replace 0.0, "", and " " with NaN 
     df = df.replace({0.0: np.nan, "": np.nan, " ": np.nan}, regex=False)
     
