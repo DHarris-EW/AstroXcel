@@ -42,8 +42,8 @@ class PeriodeSAP(Frame):
     
     def _select_and_process_file(self):
         df = upload_file(file_type="text", reader="text")
-        df["PERIODJAHR"] = df["PERIODJAHR"] - 1
-        df["BETRAG"] = df["BETRAG"].astype(str).str.replace(".", ",", regex=False)
+        df["PERIODJAHR"] = df["PERIODJAHR"].astype(int) - 1
+        df["BETRAG"] = df["BETRAG"].str.replace(".", ",", regex=False)
         return df
     
     def _save_periode_file(self, df):

@@ -14,7 +14,7 @@ def upload_file(file_type, reader, header=None):
         
         # latin-1 is the encoding when the exported from the system
         readers = {"excel": lambda file_path: pd.read_excel(file_path, header=header), 
-                   "text": lambda file_path: pd.read_csv(file_path, sep="\t", decimal=",", encoding="latin-1"),
+                   "text": lambda file_path: pd.read_csv(file_path, sep="\t", decimal=",", encoding="latin-1", dtype=str),
                    "sheets": lambda file_path: pd.read_excel(file_path, sheet_name=["ACTUALS EUR", "ACTUALS CZK"], header=header)}
         
         file = readers[reader](file_path)
