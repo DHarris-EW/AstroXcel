@@ -1,7 +1,7 @@
-import os
 import traceback
 import pandas as pd
-from tkinter import Frame, messagebox, ttk, filedialog
+from tkinter import Frame, messagebox, ttk
+from numpy import int64
 
 from utils.file_ops import upload_file, save_file
 
@@ -42,7 +42,7 @@ class PeriodeSAP(Frame):
     
     def _select_and_process_file(self):
         df = upload_file(file_type="text", reader="text")
-        df["PERIODJAHR"] = df["PERIODJAHR"].astype(int) - 1
+        df["PERIODJAHR"] = pd.to_numeric(df["PERIODJAHR"], errors="coerce").astype(int64) - 1
         df["BETRAG"] = df["BETRAG"].str.replace(".", ",", regex=False)
         return df
     

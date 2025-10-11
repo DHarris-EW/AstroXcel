@@ -1,4 +1,3 @@
-import os
 from tkinter import Frame, messagebox, ttk
 import traceback
 import pandas as pd
