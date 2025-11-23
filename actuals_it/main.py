@@ -34,6 +34,8 @@ class ActualsIT(Frame):
                 return
 
             df_cleaned = self._select_and_clean_file()
+            if df_cleaned is False:
+                return
             df_import = self._transfer_dataframes(df_cleaned)
             self._save_import_file(df_import)
 
@@ -43,6 +45,8 @@ class ActualsIT(Frame):
 
     def _select_and_clean_file(self):
         df = upload_file(file_type="excel", reader="excel", header=10)
+        if df is False:
+            return False
         return clean_dataframe(df, ["Unnamed: 1", "Data Mov.", "Date", "Data Doc.", "Causale", "Unnamed: 17"])
     
     def _save_import_file(self, df_import):
@@ -53,7 +57,8 @@ class ActualsIT(Frame):
                                    "message": "The import file has been saved to 'ActualsIT_Import.txt' in the output directory"})
     
     def _format_code(self, prefix, suffix):
-        return f"{int(prefix)}"[:2] + f"-{int(suffix):02d}-0000"
+        stipped_suffix = f"{int(suffix):02d}".strip("0")
+        return f"{int(prefix)}"[:2] + f"-{stipped_suffix}-0000"
     
     def _extract_code(self, row, current_code, code_prefix):
         if pd.notna(row["Unnamed: 1"]) and row["Unnamed: 1"] != 0.0:

@@ -31,8 +31,12 @@ class PeriodeSAP(Frame):
         try:
             if not self.menu_bar.output_dir_path :
                 messagebox.showerror("Output Directory Not Set", "Please select an output directory first.")
+                return
 
             df_periode = self._select_and_process_file()
+            print(df_periode)
+            if df_periode is False:
+                return
             self._save_periode_file(df_periode)
             
         except Exception as e:
@@ -41,6 +45,8 @@ class PeriodeSAP(Frame):
     
     def _select_and_process_file(self):
         df = upload_file(file_type="text", reader="text")
+        if df is False:
+            return False
         df["PERIODJAHR"] = pd.to_numeric(df["PERIODJAHR"], errors="coerce").astype("Int64") - 1
         df["BETRAG"] = df["BETRAG"].str.replace(".", ",", regex=False)
         return df

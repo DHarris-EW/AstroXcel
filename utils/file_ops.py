@@ -8,9 +8,10 @@ def upload_file(file_type, reader, header=None):
         file_path = filedialog.askopenfilename(title=f"Select {file_set[file_type]["name"]} File", 
                                                filetypes=[(f"{file_set[file_type]["suffix"]}", 
                                                            f"*{file_set[file_type]["suffix"]}")])
-        
+        print(file_path)
         if not file_path:
-            return
+            return False
+        print("after")
         
         # latin-1 is the encoding when the exported from the system
         readers = {"excel": lambda file_path: pd.read_excel(file_path, header=header), 
@@ -20,7 +21,6 @@ def upload_file(file_type, reader, header=None):
         file = readers[reader](file_path)
 
         messagebox.showinfo("Process Started", "Processing started. Please wait...")
-        
         return file
 
 def save_file(df, file_name, output_loc, message_info):    

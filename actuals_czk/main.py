@@ -33,6 +33,8 @@ class ActualsCzk(Frame):
                 messagebox.showerror("Output Directory Not Set", "Please select an output directory first.")
 
             df_sheets = upload_file(file_type="excel", reader="sheets", header=8)
+            if df_sheets is False:
+                return
             df_eur_cost, df_czk_cost = self._create_cost_dataframes(df_sheets)
             df_eur_import, df_czk_import = self._transfer_dataframes(df_eur_cost, df_czk_cost)
             eur_duplicates, czk_duplicates = self._check_duplicates(df_eur_import, df_czk_import)
