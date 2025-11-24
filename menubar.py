@@ -30,7 +30,7 @@ class MenuBar(Menu):
         
         disclaimer  = Menu(self, tearoff=0)
         disclaimer.add_command(label="Disclaimer", command=lambda: messagebox.showinfo("Privacy Notice", "This application processes all data locally.\nIt does not upload or store data externally."))
-        disclaimer.add_command(label="Version 1.16.3", command="")
+        disclaimer.add_command(label="Version 1.16.4", command="")
         self.add_cascade(label="Help", menu=disclaimer)
 
     def select_directory(self):
